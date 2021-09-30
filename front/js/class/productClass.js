@@ -53,4 +53,27 @@ class Product {
         })
 
     }
+
+    // Méthode définissant la couleur sélectionnée pour le produit
+    setColor() {
+        document.querySelectorAll('#colors option').forEach(option => {
+            if (option.selected) {
+                if (option.value != '') {
+                    this.color = option.value;
+                } else {
+                    throw 'Veuillez choisir une couleur !';
+                }
+            }
+        })
+    }
+
+    // Méthode définnisant la quantité sélectionnée de produit(s)
+    setQuantity() {
+        let quantity = document.getElementById('quantity');
+        if (quantity.value >= 1) {
+            this.quantity = Number(quantity.value);
+        } else {
+            throw 'Veuillez ajouter au moins un produit !';
+        }
+    }
 }

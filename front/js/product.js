@@ -21,6 +21,28 @@ if (params.has('id')) {
                 let product = new Product(jsonProduct);
                 product.printProduct();
 
+                // Event d'ajout au panier grâce à la classe Cart
+                // Vérification du choix d'une personnalisation                
+                document
+                    .getElementById('addToCart')
+                    .addEventListener('click', () => {
+
+                        try {
+                            product.setColor();
+                            product.setQuantity();
+                            let cart = new Cart('cartList');
+                            cart.addToCart(product);
+
+                            if (confirm('Votre article a bien été ajouté au panier !\nSouhaitez-vous confirmer votre commande ?')) {
+                                window.location.href='cart.html';
+                            } else {
+                                window.location.reload();
+                            }
+
+                        } catch(error) {
+                            alert(error);
+                        }
+                    })
             })
             .catch(error => {
                 printError(`${error.status} ${error.statusText} - Cet article n'existe pas!`);

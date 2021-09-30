@@ -19,6 +19,7 @@ fetch(urlApi)
     })
     .catch(error => {
         console.log(`${error.status} : ${error.statusText}`);
+        printError('Aucun article à afficher !');
     })
 
 // Vérification de la réponse de l'API et message d'erreur
@@ -32,4 +33,11 @@ function responseApi(response) {
     } else {
         return response;
     }
+}
+
+// Affichage du message d'erreur
+function printError(errorMessage) {
+    let message = document.createElement('p');
+    message.textContent = errorMessage;
+    document.getElementById('items').appendChild(message);
 }
