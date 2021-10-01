@@ -14,7 +14,7 @@ if (cart.listLength >= 1) {
     printError('Aucun article n\'a été ajouté à votre panier !')
 }
 
-// Ajout du montant et quantité totals du panier
+// Ajout du montant et quantité totaux du panier
 cart.setTotal();
 
 // Event de suppression d'article
@@ -23,6 +23,7 @@ for (const item of deleteButtons) {
     item.addEventListener('click', (event) => {
         let productId = event.target.closest('.cart__item').dataset.id;
         let productColor = event.target.closest('.cart__item').dataset.color;
+        // let productQuantity = event.target.closest('.cart__item__content__settings').querySelector('.itemQuantity').value;
         cart.removeInCart(productId, productColor);
     })
 }
@@ -34,6 +35,73 @@ for (const item of quantityButtons) {
         cart.updateQuantity(event.target.closest('.cart__item').dataset.id, event.target.closest('.cart__item').dataset.color, event.target.value);
     })
 }
+
+// Vérification de la validité de chaque champ du formulaire à chaque changement effectué
+document
+    .querySelector('.cart__order__form')
+    .addEventListener('change', (event) => {
+        cart.checkInputValidity(event.target);
+    })
+
+// Event de soumission de la commande avec envoi au backend
+document
+    .querySelector('.cart__order__form')
+    .addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const url = "http://localhost:3000/api/products/order";
+        const form = event.target;
+
+        // Vérification de la présence d'article avant l'envoi
+        // Mise en forme des données demandés par le banckend
+            /* 
+            //formatage de la requête de commande
+             {
+            	"contact": {
+            		"firstName": "Test",
+            		"lastName": "Test",
+            		"address": "Test",
+            		"city": "Test",
+            		"email": "test@test.fr"
+            		},
+            	"products": [
+            		"5be1ed3f1c9d44000030b061",
+            		"5be1ef211c9d44000030b062"
+            		]
+            } */
+        if (cart.listLength == 0) {
+            alert('Votre panier est vide');
+        } else if (cart.listLength >= 1 && cart.checkFormValidity(document.querySelector(".cart__order__form"))) {
+
+            const formData = new FormData(form);
+            let contactData = Object.fromEntries(formData.entries());
+            
+            const fetchOptions = {
+                method: form.method,
+                headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({
+                    contact: contactData,
+                    products: cart.listProducts
+                }),
+            };
+
+            // Requête API POST
+            fetch(url, fetchOptions)
+                .then(response => response.json())
+                .then(response => {
+
+                    // Création de l'url+ID de commande
+                    let queryUrl = cart.getQueryUrl('orderId', response.orderId);
+
+                    // Suppresion du panier à l'envoi des infos à l'API + Renvoi vers la page de commande
+                    cart.clearCart();
+                    window.location.href=`confirmation.html?${queryUrl}`; 
+                });
+        }
+    })
 
 // Affichage du message d'erreur
 function printError(errorMessage) {
