@@ -21,18 +21,25 @@ cart.setTotal();
 let deleteButtons = document.getElementsByClassName('deleteItem');
 for (const item of deleteButtons) {
     item.addEventListener('click', (event) => {
-        let productId = event.target.closest('.cart__item').dataset.id;
-        let productColor = event.target.closest('.cart__item').dataset.color;
-        // let productQuantity = event.target.closest('.cart__item__content__settings').querySelector('.itemQuantity').value;
-        cart.removeInCart(productId, productColor);
-    })
-}
+        let product = {
+            _id: event.target.closest('.cart__item').dataset.id,
+            color: event.target.closest('.cart__item').dataset.color
+        };
+        cart.removeInCart(product);
+        event.target.closest('.cart__item').remove();
+    });
+};
 
 // Event de changement de quantité
 let quantityButtons = document.getElementsByClassName('itemQuantity');
 for (const item of quantityButtons) {
     item.addEventListener('change', (event) => {
-        cart.updateQuantity(event.target.closest('.cart__item').dataset.id, event.target.closest('.cart__item').dataset.color, event.target.value);
+        let product = {
+            _id: event.target.closest('.cart__item').dataset.id,
+            color: event.target.closest('.cart__item').dataset.color,
+            quantity: Number(event.target.value)
+        };
+        cart.updateQuantity(product);
     })
 }
 

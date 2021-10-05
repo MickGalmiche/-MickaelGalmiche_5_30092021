@@ -8,11 +8,6 @@ class Cart {
         this.listProducts = [];
     }
 
-    // Conversion de la liste d'articles stockée dans le Local Storage (string vers array)
-    getArrayList(stringList) {
-        this.listArray = JSON.parse(stringList);
-    }
-
     // Initialisation de la propriété keyStorage pour l'accès au Local Storage
     setKeyStorage(key) {
         this.keyStorage = key;
@@ -20,13 +15,18 @@ class Cart {
 
     // Création de la key dans le Local Storage
     createKeyStorage() {
-        localStorage.setItem(this.keyStorage, '');
+        localStorage.setItem(this.keyStorage, '[]');
+    }
+ 
+    // Conversion de la liste d'articles stockée dans le Local Storage (string vers array)
+    getArrayList(stringList) {
+        this.listArray = JSON.parse(stringList);
     }
 
     // Méthode initialisant la récupération du contenu du Local Storage
     getList() {
         this.list = localStorage.getItem(this.keyStorage);
-        if(!this.list) {
+        if(this.list == null) {
             this.createKeyStorage(this.keyStorage);
             this.listArray = [];
         }else{
@@ -38,40 +38,6 @@ class Cart {
     // Méthode d'enregistrement dans le localStorage
     registerInLocalStorage() {
         localStorage.setItem(this.keyStorage, JSON.stringify(this.listArray));
-    }
-
-    // Evènement sur le bouton d'ajout au panier
-    // Enregistrement des informations dans le localStorage (string d'objets)
-    addToCart(product) {
-
-        let productInCart = this.isInCart(product);
-        if (this.listLength == 0 || !productInCart) {
-            this.listArray.push(this.formatProductStorage(product));
-        } else if (productInCart) {
-            product.quantity += productInCart.quantity;
-            this.listArray[productInCart.index] = this.formatProductStorage(product);
-        } else {
-            throw 'Impossible d\'ajouter cet article dans votre panier';
-        }
-        this.registerInLocalStorage();
-
-    }
-
-    // Méthode de vérification de présence d'un produit donné dans le storage
-    isInCart(product) {
-        let result = false;
-        for (let i in this.listArray) {
-            let item = JSON.parse(this.listArray[i]);
-
-            // Vérification des ID/color
-            if (product._id == item._id && product.color == item.color) {
-                result = {
-                    index: i,
-                    quantity: item.quantity
-                };
-            }
-        }
-        return result;
     }
 
     // Formatage des éléments de la liste de produits qui seront stockés dans le localStorage
@@ -110,41 +76,73 @@ class Cart {
         this.totalQuantity = quantity;
         this.totalPrice = price;
         this.listProducts = productArray;
-        document.querySelector('#totalQuantity').textContent = cart.totalQuantity;
-        document.querySelector('#totalPrice').textContent = cart.totalPrice;
+        
+        let printQuantity;
+        if (this.totalQuantity <= 1) {
+            printQuantity = `${this.totalQuantity} article`;
+        } else {
+            printQuantity = `${this.totalQuantity} articles`;
+        };
+
+        document.querySelector('#totalQuantity').textContent = `${printQuantity}`;
+        document.querySelector('#totalPrice').textContent = this.totalPrice;
     }
 
     // Méthode parcourant la liste de produits du localStorage pour appliquer des actions (MAJ/suppresion)
-    browseListArray(option, id, color, quantity=0) {
+    isInCart(option, product) {
+        let result = false;
         for (let i in this.listArray) {
             let item = JSON.parse(this.listArray[i]);
-            if (item._id == id && item.color == color) {
+            if (item._id == product._id && item.color == product.color) {
                 
+                // Si le produit est dans le panier (localStorage) :
+                // Appliquer les modifications à l'item (ajouter de la quantité (add/update) ou suppression)
                 switch (option) {
                     case 'update':
-                        item.quantity = quantity;
+                        item.quantity = product.quantity;
                         this.listArray[i] = this.formatProductStorage(item);
                         break;
                     case 'remove':
                         this.listArray.splice(i, 1);
                         break;
+                    case 'add':
+                        // Demande de confirmation d'ajout de quantité d'un article déjà présent dans le panier
+                        if(confirm('Ce produit est déjà dans votre panier ! Souhaitez-vous en ajouter d\'autres ?')) {
+                            item.quantity += product.quantity;
+                            this.listArray[i] = this.formatProductStorage(item);
+                            break;
+                        } else {
+                            window.location.reload();
+                        }
                 }
-
+                this.registerInLocalStorage();
+                result = true;
+                break;
             }
         }
-        this.registerInLocalStorage();
+        return result;
+    }
+
+    // Evènement sur le bouton d'ajout au panier
+    // Enregistrement des informations dans le localStorage (string d'objets)
+    addToCart(product) {
+        let productInCart = this.isInCart('add', product);
+        if (this.listLength == 0 || !productInCart) {
+            this.listArray.push(this.formatProductStorage(product));
+            this.registerInLocalStorage();
+        }
     }
 
     // Méthode de modification de la quantité dans le panier
-    updateQuantity(id, color, quantity) {
-        this.browseListArray('update', id, color, quantity);
+    updateQuantity(product) {
+        this.isInCart('update', product);
         this.setTotal();
     }
 
     // Méthode de suppression d'un item du panier
-    removeInCart(id, color) {
-        this.browseListArray('remove', id, color)
-        window.location.reload();
+    removeInCart(product) {
+        this.isInCart('remove', product);
+        this.setTotal();
     }
 
     // Suppression du panier
@@ -152,7 +150,6 @@ class Cart {
         if (this.listLength && this.listLength >= 1) {
             this.listArray.splice(0, this.listLength);
             this.registerInLocalStorage();
-            window.location.reload();
         }else{
             alert('Votre panier est déjà vide !');
         }
