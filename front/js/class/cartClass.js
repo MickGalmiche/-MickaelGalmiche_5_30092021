@@ -6,6 +6,7 @@ class Cart {
         this.totalPrice = 0;
         this.totalQuantity = 0;
         this.listProducts = [];
+        this.setTotal();
     }
 
     // Initialisation de la propriété keyStorage pour l'accès au Local Storage
@@ -52,6 +53,7 @@ class Cart {
         let clone = document.importNode(template.content, true);
         clone.querySelector('.cart__item').setAttribute('data-id', product._id);
         clone.querySelector('.cart__item').setAttribute('data-color', product.color);
+        clone.querySelector('.cart__item__img a').setAttribute('href', `product.html?${this.getQueryUrl('id', product._id)}`);
         clone.querySelector('.cart__item__img img').setAttribute('src', product.imageUrl);
         clone.querySelector('.cart__item__img img').setAttribute('alt', product.altTxt);
         clone.querySelector('h2').textContent = `${product.name} (${product.color})`;
@@ -76,7 +78,11 @@ class Cart {
         this.totalQuantity = quantity;
         this.totalPrice = price;
         this.listProducts = productArray;
-        
+    }
+
+    // Affichage des différents totaux
+    printTotal() {
+        this.setTotal();
         let printQuantity;
         if (this.totalQuantity <= 1) {
             printQuantity = `${this.totalQuantity} article`;
@@ -136,13 +142,14 @@ class Cart {
     // Méthode de modification de la quantité dans le panier
     updateQuantity(product) {
         this.isInCart('update', product);
-        this.setTotal();
+        this.printTotal();
     }
 
     // Méthode de suppression d'un item du panier
     removeInCart(product) {
         this.isInCart('remove', product);
-        this.setTotal();
+        this.printTotal();
+        this.getList();
     }
 
     // Suppression du panier
@@ -150,6 +157,7 @@ class Cart {
         if (this.listLength && this.listLength >= 1) {
             this.listArray.splice(0, this.listLength);
             this.registerInLocalStorage();
+            window.location.reload();
         }else{
             alert('Votre panier est déjà vide !');
         }
@@ -183,5 +191,4 @@ class Cart {
         queryUrl.append(param, value);
         return queryUrl.toString();
     }
-
 }

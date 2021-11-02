@@ -11,11 +11,11 @@ if (cart.listLength >= 1) {
         cart.printCartProduct(template, host, product);
     }
 } else {
-    printError('Aucun article n\'a été ajouté à votre panier !')
+    printError('Aucun article n\'a été ajouté à votre panier !');
 }
 
 // Ajout du montant et quantité totaux du panier
-cart.setTotal();
+cart.printTotal();
 
 // Event de suppression d'article
 let deleteButtons = document.getElementsByClassName('deleteItem');
@@ -27,6 +27,11 @@ for (const item of deleteButtons) {
         };
         cart.removeInCart(product);
         event.target.closest('.cart__item').remove();
+
+        if (cart.listLength == 0) {
+            printError('Aucun article n\'a été ajouté à votre panier !');
+        };
+
     });
 };
 
@@ -42,6 +47,13 @@ for (const item of quantityButtons) {
         cart.updateQuantity(product);
     })
 }
+
+// Event de suppression du panier
+document
+    .querySelector('#deleteCart')
+    .addEventListener('click', () => {
+        cart.clearCart();
+    })
 
 // Vérification de la validité de chaque champ du formulaire à chaque changement effectué
 document
